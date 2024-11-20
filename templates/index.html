@@ -3,59 +3,60 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hexagon Tile Game</title>
+    <title>Candy Land Game</title>
     <style>
         body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+        .board {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin: 20px auto;
+            width: 300px;
+        }
+        .spot {
+            width: 30px;
+            height: 30px;
+            border: 1px solid #ddd;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background-color: #f0f0f0;
+            margin: 1px;
+            font-size: 0.8em;
         }
-        #board {
-            display: grid;
-            grid-template-columns: repeat(10, 60px);
-            grid-template-rows: repeat(10, 52px);
-            gap: 2px;
-        }
-        .hex {
-            width: 60px;
-            height: 52px;
-            background-color: lightgray;
-            clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-            transition: background-color 0.2s;
-        }
+        .red { background-color: red; color: white; }
+        .blue { background-color: blue; color: white; }
+        .green { background-color: green; color: white; }
+        .yellow { background-color: yellow; color: black; }
+        .empty { background-color: white; }
     </style>
 </head>
 <body>
+    <h1>Candy Land Game</h1>
+    <h2>Current Turn: {{ current_turn }}</h2>
 
-<div id="board">
-    <!-- Hexagonal tiles will be added here on clicks -->
-</div>
+    {% if last_roll is not none %}
+        <p>{{ last_player }} rolled a {{ last_roll }}!</p>
+    {% endif %}
 
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script>
-    $(document).ready(function() {
-        // Create an empty board of hex tiles
-        for (let i = 0; i < 100; i++) {
-            const hexTile = $('<div class="hex"></div>');
-            hexTile.data("clicked", false);  // Track if a tile has been clicked
-            $('#board').append(hexTile);
-        }
+    {% if game_over %}
+        <h2>🎉 {{ last_player }} wins! 🎉</h2>
+    {% endif %}
 
-        // Add color to hex tiles on click
-        $('#board').on('click', '.hex', function() {
-            if (!$(this).data("clicked")) {  // Only allow one click per tile
-                $.getJSON('/add_tile', function(data) {
-                    $(this).css('background-color', data.color);
-                    $(this).data("clicked", true);  // Mark as clicked
-                }.bind(this));
-            }
-        });
-    });
-</script>
+    <div class="board">
+        {% for spot in board %}
+            <div class="spot {{ spot }}">{{ spot if spot != 'empty' else '' }}</div>
+        {% endfor %}
+    </div>
 
+    <form action="/roll_dice" method="post">
+        <button type="submit" style="padding: 10px 20px;">Roll Dice</button>
+    </form>
+
+    <form action="/reset_game" method="post" style="margin-top: 10px;">
+        <button type="submit" style="padding: 10px 20px;">Reset Game</button>
+    </form>
 </body>
 </html>
