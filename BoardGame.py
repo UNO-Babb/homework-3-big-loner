@@ -1,7 +1,47 @@
 from flask import Flask, request, jsonify, render_template, redirect, url_for
 import random
-import pandas
-import numpy
+
+def save_game():
+    outFile = open("data.csv", 'w')
+    
+    # Save players' positions
+    outFile.write("player,position\n")
+    
+    for player, position in players.items():
+        outFile.write(f"{player},{position}\n")
+    
+    # Save current turn
+    outFile.write(f"turn,{turn_order[current_turn_index]}\n")
+    outFile.close()
+
+
+def load_game():
+    global board, players, current_turn_index
+    
+    inFile = open("data.csv", 'r')
+    lines = inFile.readlines()
+    
+    if len(lines) < 6:
+        print("Save file is incomplete. Initializing a new game.")
+        save_game()
+        return
+    
+    for line in lines[1:5]:
+        player, position = line.strip().split(",")
+        players[player] = int(position)
+
+        _, current_turn = lines[5].strip().split(",")
+        current_turn_index = turn_order.index(current_turn)
+
+    
+    for i in range(len(board)):
+        board[i] = "empty" 
+    
+    for player, position in players.items():
+        board[position] = player
+
+    inFile.close()
+    
 
 app = Flask(__name__)
 
@@ -43,6 +83,8 @@ def roll_dice_endpoint():
     # Update turn
     current_turn_index = (current_turn_index + 1) % len(turn_order)
 
+    save_game()
+
     return render_template(
         "index.html",
         board=board,
@@ -59,7 +101,11 @@ def reset_game():
     board = ["empty"] * 50
     players = {"red": 0, "blue": 0, "green": 0, "yellow": 0}
     current_turn_index = 0
+
+    save_game()
+
     return redirect(url_for("index"))
 
 if __name__ == "__main__":
+    load_game()
     app.run(debug=True)
